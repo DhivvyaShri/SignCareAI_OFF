@@ -1,0 +1,17 @@
+{
+  "short_name": "SignCare AI",
+  "name": "SignCare AI - Offline ISL Hospital Communication",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0e766b",
+  "theme_color": "#0e766b",
+  "display": "standalone",
+  "orientation": "any"
+}
+

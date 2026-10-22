@@ -1,0 +1,21 @@
+[
+  {
+    "confirmedByPatient": true,
+    "islStatements": [
+      {
+        "confirmedText": "HELP PAIN"
+      }
+    ],
+    "painRegions": [
+      {
+        "intensity": 7,
+        "name": "Chest"
+      }
+    ],
+    "patientId": "PT-TEST",
+    "id": "rep_srv_1792648396218",
+    "serverReceivedAt": "2026-10-22 11:23:16",
+    "deliveryAcknowledged": true,
+    "transferMode": "Shared Local Hospital Network (LAN)"
+  }
+]

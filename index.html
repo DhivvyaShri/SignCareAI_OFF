@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="theme-color" content="#0e766b"/>
+    <meta name="description" content="SignCare AI - Offline-First Indian Sign Language (ISL) Hospital Communication Platform"/>
+    <link rel="manifest" href="/manifest.json"/>
+    <title>SignCare AI | Hospital Communication Platform</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then((reg) => {
+            console.log('SignCare AI ServiceWorker registered with scope:', reg.scope);
+          }).catch((err) => {
+            console.log('ServiceWorker registration optional notice:', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

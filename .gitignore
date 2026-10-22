@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.venv/
+__pycache__/
+*.py[cod]
+isl-backend/dataset/**
+!isl-backend/dataset/README.md
+isl-backend/models/*.keras
+isl-backend/models/*.joblib
+isl-backend/models/*.json
+!isl-backend/models/README.md
