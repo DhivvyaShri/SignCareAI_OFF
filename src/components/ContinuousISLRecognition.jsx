@@ -55,11 +55,12 @@ export default function ContinuousISLRecognition({
         const res = await fetch(`${apiBaseUrl}/health`, { signal: AbortSignal.timeout(3000) });
         const data = await res.json();
         if (cancelled) return;
-        if (data.continuous_model_loaded || data.word_model_loaded) {
+        if (data.continuous_model_loaded && data.continuous_model_status === 'ready') {
           const vocab = data.classes || [];
           setBackendStatus(`Continuous ISL Sequence Model Active (${vocab.length} signs: ${vocab.slice(0, 4).join(', ')}...)`);
         } else {
-          setBackendStatus('Sequence service ready (Awaiting trained sequence weights)');
+          const detector = data.landmark_detector_status === 'ready' ? 'MediaPipe hand detector ready' : (data.messages?.landmark_detector || 'MediaPipe hand detector unavailable');
+          setBackendStatus(`ISL model not ready. ${detector}. Add verified real training videos before recognition; manual text entry is available.`);
         }
       } catch {
         if (!cancelled) setBackendStatus('Backend service offline (Start isl-backend/app.py on port 8000)');
@@ -327,8 +328,8 @@ export default function ContinuousISLRecognition({
       if (response.ok && data.prediction) {
         const confidenceScore = Math.round((data.confidence || 0) * 100);
         
-        // Calibration confidence threshold: 65%
-        if (confidenceScore >= 65) {
+        // Keep the UI conservative until backend model metadata reports its validated threshold.
+        if (confidenceScore >= Math.round((data.confidence_threshold ?? 0.65) * 100)) {
           setRecognizedTokens(prev => {
             const last = prev[prev.length - 1];
             // Deduplicate immediately identical consecutive predictions
@@ -353,7 +354,10 @@ export default function ContinuousISLRecognition({
           handleUnknownSign(nowTime, confidenceScore);
         }
       } else {
-        if (data.unknown) {
+        if (data.status === 'model_not_ready') {
+          setBackendStatus(data.message || 'ISL model not ready. Manual text entry remains available.');
+          setUnknownSignWarning('Recognition is unavailable until a verified real ISL model is installed. Type your message below.');
+        } else if (data.unknown) {
           handleUnknownSign(nowTime, Math.round((data.confidence || 0) * 100));
         }
       }

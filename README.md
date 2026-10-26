@@ -51,7 +51,7 @@ The system combines **interactive human anatomy pain mapping**, **continuous Ind
   - **Mode A (Same-Device Demo)**: Instant read/write to IndexedDB; doctor view opens saved reports on the same device.
   - **Mode B (Shared Local Hospital LAN)**: Authenticated REST service (`/api/reports`) over the hospital's local WiFi/Ethernet without external internet access.
 - **Clinical AI Engine**:
-  - **Offline Local Mode**: 100% deterministic rule-based medical report summarization (zero network, zero hallucination).
+  - **Offline Local Mode**: A deterministic local communication summary (no network request; not a diagnosis).
   - **Local AI Mode**: Connects to locally installed Ollama (`http://localhost:11434`) running Nemotron or Llama 3 models.
   - **Online NVIDIA Mode**: Optional hosted NVIDIA NIM API if `NVIDIA_API_KEY` is provided.
   - **Manual Mode**: AI disabled.
@@ -83,15 +83,15 @@ py -3.11 -m venv .venv
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Train or initialize baseline continuous sequence weights
-python train_continuous_model.py --generate-calibration-baseline
+# 3. Model stays not ready until the verified dataset and local MediaPipe model are installed
+python prepare_isl_dataset.py
 
 # 4. Start the backend service
 python app.py
 ```
 
 The Flask backend starts at: `http://127.0.0.1:8000`.
-Visit `http://127.0.0.1:8000/health` to confirm `continuous_model_loaded: true`.
+Visit `http://127.0.0.1:8000/health`. ISL recognition should report `model_not_ready` until genuine licensed clips are imported and trained.
 
 ### Step 2: Start the React Frontend Application
 Open a **second** PowerShell terminal in the project root:
@@ -171,10 +171,11 @@ python isl-backend/prepare_isl_dataset.py --auto-create-folders
    - Source: `https://github.com/RealSign62/RealSign-Indian-Sign-Language-Dataset`.
    - Place extracted folders in `isl-backend/dataset/Training/`, `Validation/`, `Testing/`.
    - Train with: `python isl-backend/train_model.py`.
-2. **Continuous / Isolated Word Videos (INCLUDE & 40-Words ISL)**:
-   - Source: AI4Bharat INCLUDE dataset and Hugging Face `Angirekula/isl-isolated-40words`.
-   - Target vocabulary: `HELP`, `PAIN`, `CHEST_PAIN`, `DOCTOR`, `NURSE`, `WATER`, `MEDICINE`, `FEVER`, `BREATHING_DIFFICULTY`, `YES`, `NO`, `THANK_YOU`.
-   - Place MP4 clips in `isl-backend/dataset/words/<LABEL>/` or record clips using:
+2. **Isolated-word videos**:
+   - Begin by inspecting metadata and licenses from Hugging Face `vidit031/isl-isolated-40words`; it is a multi-source aggregate, so review each original source's terms before acquiring or using video.
+   - `ai4bharat/INCLUDE` is a metadata listing; videos are downloaded separately from Zenodo according to its dataset card. `Exploration-Lab/iSign` is gated and CC-BY-NC-SA-4.0, for research use only.
+   - The model vocabulary is discovered from verified labeled clip folders and is never hard-coded to medical labels.
+   - Place licensed videos in `isl-backend/dataset/words/<LABEL>/` or record clips using:
      ```powershell
      python isl-backend/collect_word_clips.py --label HELP --count 30
      ```
@@ -182,7 +183,7 @@ python isl-backend/prepare_isl_dataset.py --auto-create-folders
      ```powershell
      python isl-backend/train_continuous_model.py
      ```
-   - Evaluation metrics (accuracy, precision, recall, F1, confusion matrix) are automatically saved to `isl-backend/models/continuous_evaluation.json`.
+   - Genuine evaluation metrics (accuracy, class-wise precision/recall/F1, confusion matrix) are saved under `isl-backend/models/real_isl/`; no calibration metrics are presented as real performance.
 
 ---
 

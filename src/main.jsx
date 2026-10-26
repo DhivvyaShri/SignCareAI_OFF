@@ -197,8 +197,7 @@ function App() {
           const res = await fetch(`${API_BASE_URL}/api/reports`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer LOCAL_HOSPITAL_SECRET_2026'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify(report)
           });

@@ -1,0 +1,56 @@
+"""Shared MediaPipe Hands preprocessing for genuine training and inference."""
+from __future__ import annotations
+
+import cv2
+import numpy as np
+
+FRAME_SIZE = (320, 240)
+MAX_HANDS = 2
+FEATURES_PER_HAND = 63
+FEATURES_PER_FRAME = MAX_HANDS * FEATURES_PER_HAND
+PREPROCESSING = {
+    "detector": "MediaPipe Hands",
+    "coordinate_normalization": "wrist-origin, scaled by wrist-to-middle-MCP distance",
+    "frame_size": list(FRAME_SIZE),
+    "max_hands": MAX_HANDS,
+    "hand_order": "detector output order",
+    "missing_hand": "zero vector; frames with no detected hands are invalid",
+}
+
+
+class HandLandmarkExtractor:
+    def __init__(self, min_detection_confidence: float = 0.5):
+        try:
+            import mediapipe as mp
+        except ImportError as exc:
+            raise RuntimeError("MediaPipe is required. Install isl-backend/requirements.txt.") from exc
+        self._mp = mp
+        self._detector = mp.solutions.hands.Hands(
+            static_image_mode=True,
+            max_num_hands=MAX_HANDS,
+            min_detection_confidence=min_detection_confidence,
+            min_tracking_confidence=0.5,
+        )
+
+    def extract(self, frame: np.ndarray) -> np.ndarray | None:
+        if frame is None or frame.size == 0:
+            return None
+        resized = cv2.resize(frame, FRAME_SIZE)
+        rgb = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+        result = self._detector.process(rgb)
+        if not result.multi_hand_landmarks:
+            return None
+        hands = []
+        for hand in result.multi_hand_landmarks[:MAX_HANDS]:
+            pts = np.array([[p.x, p.y, p.z] for p in hand.landmark], dtype=np.float32)
+            pts -= pts[0]
+            scale = float(np.linalg.norm(pts[9, :2]))
+            if scale > 1e-6:
+                pts /= scale
+            hands.append(pts.reshape(-1))
+        while len(hands) < MAX_HANDS:
+            hands.append(np.zeros(FEATURES_PER_HAND, dtype=np.float32))
+        return np.concatenate(hands).astype(np.float32)
+
+    def close(self):
+        self._detector.close()

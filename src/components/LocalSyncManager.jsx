@@ -38,7 +38,7 @@ export default function LocalSyncManager({
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
   const [serverHost, setServerHost] = useState(apiBaseUrl);
-  const [authToken, setAuthToken] = useState('LOCAL_HOSPITAL_SECRET_2026');
+  const [authToken, setAuthToken] = useState('');
 
   // Monitor network online/offline transitions
   useEffect(() => {

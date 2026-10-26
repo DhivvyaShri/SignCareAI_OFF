@@ -1,0 +1,48 @@
+{
+  "status": "production_candidate",
+  "model_type": "RandomForestClassifier on fixed-length MediaPipe hand landmark sequences",
+  "input_shape": [
+    20,
+    126
+  ],
+  "classes": [
+    "FRIEND",
+    "HELLO",
+    "HOSPITAL",
+    "MARKET",
+    "SCHOOL",
+    "THANK_YOU"
+  ],
+  "preprocessing": {
+    "detector": "MediaPipe Hands",
+    "coordinate_normalization": "wrist-origin, scaled by wrist-to-middle-MCP distance",
+    "frame_size": [
+      320,
+      240
+    ],
+    "max_hands": 2,
+    "hand_order": "detector output order",
+    "missing_hand": "zero vector; frames with no detected hands are invalid"
+  },
+  "dataset_provenance": {
+    "source": "INCLUDE subset: 122 accepted clips selected from vidit031/isl-isolated-40words",
+    "source_url": "https://huggingface.co/datasets/vidit031/isl-isolated-40words; upstream INCLUDE: https://huggingface.co/datasets/ai4bharat/INCLUDE",
+    "license": "CC BY 4.0 for the selected INCLUDE-source clips, as identified in the dataset metadata and upstream INCLUDE dataset card. This does not apply to other source groups.",
+    "attribution": "Sridhar, Advaith; Ganesan, Rohith Gandhi; Kumar, Pratyush; Khapra, Mitesh (2020). INCLUDE: A Large Scale Dataset for Indian Sign Language Recognition. ACM Multimedia 2020. https://doi.org/10.1145/3394171.3413528. Original dataset: AI4Bharat INCLUDE. Retain attribution and comply with CC BY 4.0.",
+    "signer_metadata": "Verified individual signer IDs unavailable. The aggregate metadata signer field contains semantic categories; split field is blank.",
+    "source_files_unmodified": true,
+    "reviewed_use_terms": true
+  },
+  "sample_counts": {
+    "FRIEND": 17,
+    "HELLO": 18,
+    "HOSPITAL": 19,
+    "MARKET": 16,
+    "SCHOOL": 18,
+    "THANK_YOU": 18
+  },
+  "signer_metadata": "complete; group split used",
+  "trained_at_unix": 1792986320.3154907,
+  "is_calibration_baseline": false,
+  "evaluation_status": "evaluated_on_real_video_holdout"
+}

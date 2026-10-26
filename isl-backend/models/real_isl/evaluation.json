@@ -1,0 +1,143 @@
+{
+  "status": "evaluated_on_real_video_holdout",
+  "accuracy": 0.8095238095238095,
+  "held_out_samples": 21,
+  "validation_samples": 21,
+  "validation_threshold": 0.3466666666666667,
+  "threshold_selection": "lowest validation confidence achieving >=90% accuracy among >=5 accepted examples",
+  "classification_report": {
+    "FRIEND": {
+      "precision": 1.0,
+      "recall": 0.75,
+      "f1-score": 0.8571428571428571,
+      "support": 4.0
+    },
+    "HELLO": {
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1-score": 0.6666666666666666,
+      "support": 2.0
+    },
+    "HOSPITAL": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 2.0
+    },
+    "MARKET": {
+      "precision": 0.25,
+      "recall": 1.0,
+      "f1-score": 0.4,
+      "support": 1.0
+    },
+    "SCHOOL": {
+      "precision": 0.8571428571428571,
+      "recall": 1.0,
+      "f1-score": 0.9230769230769231,
+      "support": 6.0
+    },
+    "THANK_YOU": {
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "f1-score": 0.8,
+      "support": 6.0
+    },
+    "accuracy": 0.8095238095238095,
+    "macro avg": {
+      "precision": 0.8511904761904762,
+      "recall": 0.8194444444444445,
+      "f1-score": 0.7744810744810744,
+      "support": 21.0
+    },
+    "weighted avg": {
+      "precision": 0.923469387755102,
+      "recall": 0.8095238095238095,
+      "f1-score": 0.8333507762079192,
+      "support": 21.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      3,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      6,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      1,
+      4
+    ]
+  ],
+  "classes": [
+    "FRIEND",
+    "HELLO",
+    "HOSPITAL",
+    "MARKET",
+    "SCHOOL",
+    "THANK_YOU"
+  ],
+  "confidence_threshold": 0.3466666666666667,
+  "test_files": [
+    "words\\FRIEND\\friend__INCLUDE__00547__MVI_3827.mp4",
+    "words\\FRIEND\\friend__INCLUDE__00553__MVI_4123.mp4",
+    "words\\FRIEND\\friend__INCLUDE__00554__MVI_4124.mp4",
+    "words\\FRIEND\\friend__INCLUDE__00555__MVI_4246.mp4",
+    "words\\HELLO\\hello__INCLUDE__00581__MVI_9955.mp4",
+    "words\\HELLO\\hello__INCLUDE__00584__MVI_9982.mp4",
+    "words\\HOSPITAL\\hospital__INCLUDE__00506__MVI_3315.mp4",
+    "words\\HOSPITAL\\hospital__INCLUDE__00515__MVI_3481.mp4",
+    "words\\MARKET\\market__INCLUDE__00528__MVI_3325.mp4",
+    "words\\SCHOOL\\school__INCLUDE__00486__MVI_3290.mp4",
+    "words\\SCHOOL\\school__INCLUDE__00490__MVI_3371.mp4",
+    "words\\SCHOOL\\school__INCLUDE__00491__MVI_3372.mp4",
+    "words\\SCHOOL\\school__INCLUDE__00494__MVI_3456.mp4",
+    "words\\SCHOOL\\school__INCLUDE__00496__MVI_3458.mp4",
+    "words\\SCHOOL\\school__INCLUDE__00505__MVI_3617.mp4",
+    "words\\THANK_YOU\\thank_you__INCLUDE__00612__MVI_0059.mp4",
+    "words\\THANK_YOU\\thank_you__INCLUDE__00613__MVI_0060.mp4",
+    "words\\THANK_YOU\\thank_you__INCLUDE__00616__MVI_0062.mp4",
+    "words\\THANK_YOU\\thank_you__INCLUDE__00617__MVI_0063.mp4",
+    "words\\THANK_YOU\\thank_you__INCLUDE__00624__MVI_9951.mp4",
+    "words\\THANK_YOU\\thank_you__INCLUDE__00628__MVI_9987.mp4"
+  ],
+  "signer_independent_evaluation": "grouped_by_signer across train/validation/test",
+  "is_calibration_baseline": false
+}

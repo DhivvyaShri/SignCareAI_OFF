@@ -1,22 +1,17 @@
-SIGNCARE AI — TRAINING & MODEL STATUS
+SIGNCARE AI — TRAINING AND MODEL STATUS
 
-1. Continuous ISL Sequence Model:
-   - Checkpoint: isl-backend/models/isl_continuous_sequence.joblib
-   - Labels: isl-backend/models/continuous_labels.json
-   - Classes: CHEST_PAIN, DOCTOR, FEVER, HELP, MEDICINE, NO, PAIN, WATER, YES
-   - Feature Representation: 20 temporal frames x 126 normalized dual-hand landmarks
-   - Baseline held-out evaluation saved: isl-backend/models/continuous_evaluation.json
-   - Re-train on custom clips:
-       python isl-backend/train_continuous_model.py
+Production ISL model: NOT READY
+Reason: the local dataset directory contains class folders but no authentic labeled video clips.
+No genuine model architecture has been fit and no real held-out evaluation is available.
 
-2. RealSign Fingerspelling A-Z Alphabet Model:
-   - Script: isl-backend/train_model.py
-   - Dataset layout: isl-backend/dataset/Training/A/ ... Z/
-   - Download dataset from: https://github.com/RealSign62/RealSign-Indian-Sign-Language-Dataset
+The legacy models/calibration/isl_continuous_sequence.joblib and continuous_evaluation.json are synthetic calibration artifacts. The stored 1.0 score is not real recognition accuracy. Production inference ignores these files.
 
-3. Dataset Readiness Audit:
-   - Script: python isl-backend/prepare_isl_dataset.py --auto-create-folders
-   - Report: isl-backend/dataset/dataset_readiness_report.json
+Training pipeline: isl-backend/train_continuous_model.py
+Shared MediaPipe preprocessing: isl-backend/hand_landmarks.py
+Dataset inventory: isl-backend/download_isl_dataset.py
+Readiness audit: isl-backend/prepare_isl_dataset.py
+Evaluation reader: isl-backend/evaluate_isl_model.py
 
-Patient confirmation is mandatory for all machine interpretations.
-This prototype is designed for healthcare communication support, not clinical diagnosis.
+Expected real artifacts after valid training: isl-backend/models/real_isl/
+Supported vocabulary: only classes present in verified local video folders; currently none.
+Patient confirmation remains required for all future candidate interpretations.

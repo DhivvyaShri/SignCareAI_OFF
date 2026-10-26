@@ -1,0 +1,24 @@
+{
+  "model_type": "TemporalSequenceClassifier (RandomForest 300 estimators)",
+  "input_shape": [
+    20,
+    126
+  ],
+  "total_features": 2520,
+  "classes": [
+    "CHEST_PAIN",
+    "DOCTOR",
+    "FEVER",
+    "HELP",
+    "MEDICINE",
+    "NO",
+    "PAIN",
+    "WATER",
+    "YES"
+  ],
+  "num_classes": 9,
+  "confidence_threshold": 0.65,
+  "is_calibration_baseline": true,
+  "trained_at": "2026-10-22 11:38:46",
+  "notes": "Requires patient confirmation for all predictions. Not clinically validated for diagnosis."
+}

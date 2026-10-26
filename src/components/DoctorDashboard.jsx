@@ -69,7 +69,7 @@ export default function DoctorDashboard({
       });
       generateOrLoadSummary(activeReport);
     }
-  }, [activeReportId]);
+  }, [activeReportId, aiMode]);
 
   const toggleSectionReviewed = (sectionKey) => {
     const next = { ...reviewedSections, [sectionKey]: !reviewedSections[sectionKey] };
@@ -117,26 +117,31 @@ export default function DoctorDashboard({
 
   // Generate Deterministic or Local AI Summary
   const generateOrLoadSummary = async (report) => {
-    if (report.aiSummary) {
-      setAiSummaryText(report.aiSummary);
+    if (aiMode === 'disabled') {
+      setAiSummaryText('Manual mode is selected. No AI summary was generated.');
       return;
     }
-
+    if (aiMode === 'offline') {
+      setAiSummaryText(generateDeterministicSummary(report));
+      return;
+    }
+    const externalConsent = aiMode === 'nvidia' && window.confirm('This sends confirmed sign text, selected pain details, and the patient question to NVIDIA’s hosted AI service. Free text may contain identifying or sensitive details. The patient identifier and camera frames are excluded. Continue?');
+    if (aiMode === 'nvidia' && !externalConsent) {
+      setAiSummaryText('Hosted AI was canceled. Select Offline Local Mode to create a local template summary.');
+      return;
+    }
     setIsSummarizing(true);
     try {
       const response = await fetch(`${apiBaseUrl}/api/ai/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ report, aiMode })
+        body: JSON.stringify({ report, aiMode, externalAiConsent: externalConsent })
       });
-      if (response.ok) {
-        const data = await response.json();
-        setAiSummaryText(data.summary || generateDeterministicSummary(report));
-      } else {
-        setAiSummaryText(generateDeterministicSummary(report));
-      }
-    } catch {
-      setAiSummaryText(generateDeterministicSummary(report));
+      const data = await response.json();
+      if (!response.ok || !data.content) throw new Error(data.error || `Service returned ${response.status}`);
+      setAiSummaryText(`[${data.engine}${data.model ? ` · ${data.model}` : ''}]\n${data.content}`);
+    } catch (error) {
+      setAiSummaryText(`${aiMode === 'nvidia' ? 'NVIDIA hosted AI' : 'Local AI'} unavailable: ${error.message}. No AI output was generated. Select Offline Local Mode to use the deterministic template.`);
     } finally {
       setIsSummarizing(false);
     }

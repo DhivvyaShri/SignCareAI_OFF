@@ -1,0 +1,9 @@
+{
+  "source": "REPLACE with exact original source collection and release",
+  "source_url": "REPLACE with the canonical source URL",
+  "license": "REPLACE with verified per-source license or documented permission",
+  "attribution": "REPLACE with required attribution and citation",
+  "signer_metadata": "available or unavailable; specify where verified",
+  "source_files_unmodified": true,
+  "reviewed_use_terms": false
+}

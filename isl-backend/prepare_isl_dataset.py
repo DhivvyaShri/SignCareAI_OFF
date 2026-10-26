@@ -6,8 +6,10 @@ Validates videos, avoids subject leakage, checks corruption, and produces a data
 from __future__ import annotations
 import argparse
 import hashlib
+import csv
 import json
 import os
+from datetime import datetime, timezone
 import shutil
 import sys
 from pathlib import Path
@@ -22,6 +24,7 @@ ALPHABET_DIR = DATASET_DIR / "alphabet"
 WORDS_DIR = DATASET_DIR / "words"
 CONTINUOUS_DIR = DATASET_DIR / "continuous"
 REPORT_PATH = DATASET_DIR / "dataset_readiness_report.json"
+VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
 
 # Supported target hospital vocabulary
 HOSPITAL_ISL_VOCABULARY = [
@@ -45,7 +48,7 @@ def calculate_file_hash(path: Path) -> str:
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(65536), b""):
             hasher.update(chunk)
-    return hasher.hexdigest()[:16]
+    return hasher.hexdigest()
 
 def validate_video_file(path: Path) -> Dict[str, Any]:
     """Check video readability, frame count, FPS, and resolution."""
@@ -58,11 +61,18 @@ def validate_video_file(path: Path) -> Dict[str, Any]:
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 0
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 0
     
-    # Read first and last frame to test corruption
+    # Read both ends so empty/truncated files do not pass on metadata alone.
     ret1, f1 = cap.read()
     if not ret1 or f1 is None:
         cap.release()
         return {"valid": False, "error": "First frame corrupt or unreadable."}
+
+    if frame_count > 1:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_count - 1)
+        ret_last, last_frame = cap.read()
+        if not ret_last or last_frame is None:
+            cap.release()
+            return {"valid": False, "error": "Last indexed frame corrupt or unreadable."}
     
     cap.release()
     
@@ -123,7 +133,10 @@ def scan_temporal_words_dataset() -> Dict[str, Any]:
         "total_clips": 0,
         "valid_clips": 0,
         "corrupted_clips": 0,
-        "supported_hospital_vocab_covered": []
+        "supported_hospital_vocab_covered": [],
+        "duplicate_clips": [],
+        "missing_labels": [],
+        "signer_ids_available": False,
     }
     
     if not WORDS_DIR.exists():
@@ -137,7 +150,7 @@ def scan_temporal_words_dataset() -> Dict[str, Any]:
     
     for folder in class_folders:
         label = folder.name.upper()
-        clips = [p for p in folder.rglob("*") if p.suffix.lower() in {".mp4", ".avi", ".mov", ".mkv"}]
+        clips = [p for p in folder.rglob("*") if p.suffix.lower() in VIDEO_EXTENSIONS]
         
         valid_list = []
         corrupted_list = []
@@ -146,7 +159,7 @@ def scan_temporal_words_dataset() -> Dict[str, Any]:
             val = validate_video_file(clip)
             if val["valid"]:
                 valid_list.append({
-                    "file": clip.name,
+                    "file": str(clip.relative_to(DATASET_DIR)),
                     "duration": val.get("duration_sec", 0),
                     "frames": val.get("frame_count", 0),
                     "resolution": f"{val.get('width')}x{val.get('height')}"
@@ -168,6 +181,29 @@ def scan_temporal_words_dataset() -> Dict[str, Any]:
         if label in HOSPITAL_ISL_VOCABULARY and len(valid_list) > 0:
             words_status["supported_hospital_vocab_covered"].append(label)
             
+    words_status["present"] = words_status["valid_clips"] > 0
+    hashes = {}
+    for folder in class_folders:
+        for clip in folder.rglob("*"):
+            if clip.suffix.lower() not in VIDEO_EXTENSIONS:
+                continue
+            digest = calculate_file_hash(clip)
+            if digest in hashes:
+                words_status["duplicate_clips"].append({"file": str(clip.relative_to(DATASET_DIR)), "duplicate_of": hashes[digest]})
+            else:
+                hashes[digest] = str(clip.relative_to(DATASET_DIR))
+    words_status["missing_labels"] = [label for label in HOSPITAL_ISL_VOCABULARY if words_status["classes"].get(label, {}).get("valid", 0) == 0]
+    signer_fields = {"signer", "signer_id", "subject", "participant_id"}
+    for metadata_csv in DATASET_DIR.rglob("*.csv"):
+        try:
+            with metadata_csv.open(encoding="utf-8-sig", newline="") as source:
+                reader = csv.DictReader(source)
+                if reader.fieldnames and signer_fields.intersection(name.strip().lower() for name in reader.fieldnames):
+                    words_status["signer_ids_available"] = any(any((row.get(key) or "").strip() for key in signer_fields) for row in reader)
+                    if words_status["signer_ids_available"]:
+                        break
+        except (OSError, UnicodeError):
+            continue
     return words_status
 
 def main():
@@ -192,7 +228,7 @@ def main():
     words_report = scan_temporal_words_dataset()
     
     readiness_report = {
-        "timestamp": Path(__file__).stat().st_mtime,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "environment": {
             "os": sys.platform,
             "python": sys.version.split()[0],
@@ -203,11 +239,10 @@ def main():
         "temporal_word_dataset": words_report,
         "readiness_summary": {
             "alphabet_ready_for_training": alpha_report["present"] and len(alpha_report["classes_found"]) >= 26,
-            "continuous_words_ready_for_training": words_report["present"] and len(words_report["classes"]) >= 2,
+            "continuous_words_ready_for_training": sum(1 for entry in words_report["classes"].values() if entry["valid"] >= 5) >= 2,
             "notes": (
-                "Continuous and temporal word models require at least 2 validated classes (prefer 30+ clips per class). "
-                "Alphabet training requires A-Z RealSign images. "
-                "Never invent fake training samples. Only authentic ISL recordings should be trained."
+                "Readiness uses videos that OpenCV can open, not just folder names. At least two validated classes with five clips each are required for minimum train/validation/test partitions. "
+                "Dataset provenance and license review are required before training. Signer-independent evaluation is not guaranteed unless verified signer metadata is used."
             )
         }
     }
@@ -215,6 +250,12 @@ def main():
     REPORT_PATH.write_text(json.dumps(readiness_report, indent=2), encoding="utf-8")
     print(f"Dataset readiness report saved to: {REPORT_PATH}")
     print("\nReadiness Summary:")
+    print(f"Video files: {words_report['total_clips']}; readable: {words_report['valid_clips']}; unreadable: {words_report['corrupted_clips']}")
+    print(f"Exact duplicates: {len(words_report['duplicate_clips'])}; signer metadata detected: {words_report['signer_ids_available']}")
+    print("Per-class readable clip counts:")
+    for label, counts in sorted(words_report["classes"].items()):
+        print(f"  {label}: {counts['valid']} readable / {counts['total']} files")
+    print(f"Missing configured labels: {words_report['missing_labels']}")
     print(f"  • A-Z Alphabet Dataset Present: {alpha_report['present']} ({alpha_report['total_images']} images across {len(alpha_report['classes_found'])} classes)")
     print(f"  • Temporal Sequence Dataset Present: {words_report['present']} ({words_report['valid_clips']} valid clips across {len(words_report['classes'])} classes)")
     print(f"  • Hospital Vocabulary Covered: {words_report['supported_hospital_vocab_covered']}")
